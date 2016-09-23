@@ -1,0 +1,7 @@
+{
+  "name": "",
+  "description" : "",
+  "autoJoin" : false,
+  "realm": "ARTIFACTORY",
+  "realmAttributes": "Realm attributes for use by LDAP"
+}

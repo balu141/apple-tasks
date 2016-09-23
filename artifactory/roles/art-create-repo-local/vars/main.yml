@@ -1,0 +1,7 @@
+---
+# vars file for art-create-repo
+
+repo_endpoint: "api/repositories"
+local_repo_type: "local"
+
+

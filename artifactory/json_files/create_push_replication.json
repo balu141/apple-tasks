@@ -1,0 +1,5 @@
+{
+  "cronExp":"0 0/9 14 * * ?",
+  "enableEventReplication":true,
+  "replications": ""
+}

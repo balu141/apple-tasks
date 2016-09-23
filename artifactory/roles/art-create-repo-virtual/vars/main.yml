@@ -1,0 +1,6 @@
+---
+# vars file for art-create-repo-virtual
+
+repo_endpoint: "api/repositories"
+virtual_repo_type: "virtual"
+#remote_repo_type: "remote"

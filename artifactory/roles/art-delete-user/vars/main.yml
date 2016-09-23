@@ -1,0 +1,4 @@
+---
+# vars file for art-delete-user
+
+user_endpoint: "api/security/users"

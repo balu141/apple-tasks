@@ -1,0 +1,4 @@
+---
+# vars file for art-delete-perms
+
+perms_endpoint: "api/security/permissions"

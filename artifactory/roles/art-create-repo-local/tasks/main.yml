@@ -1,0 +1,21 @@
+---
+## task file for art-create-repo-local
+
+- name: create local repos
+  include: create-repo-local.yml
+  vars:
+    repo_key: "{{ project_name }}-{{ item.key }}-local"
+    pkg_type: "{{ item.pkg_type }}"
+    layout_type: "{{ item.layout_type }}"
+    isRelease: "{{ item.isRelease }}"
+    isSnapshot: "{{ item.isSnapshot }}"
+    isPomCheck: "{{ item.isPomCheck }}"
+    snap_bh: "{{ item.snap_bh }}"
+    max_uniq_snap: "{{ item.max_uniq_snap }}"
+  with_items: "{{ local_repo_params }}"
+
+
+
+ 
+
+  

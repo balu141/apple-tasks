@@ -1,0 +1,179 @@
+## playbook for artifactory onboarding
+---
+- hosts: localhost
+  gather_facts: yes
+
+  vars_prompt:
+    - name: "project_name"
+      prompt: "Enter project name:"
+      private: no
+
+    - name: "ro_user_password"
+      prompt: "Enter password for artifactory ro user:"
+      private: yes
+
+    - name: "ro_user_email"
+      prompt: "Enter email id for artifactory ro user:"
+      private: no
+      
+    - name: "publish_user_password"
+      prompt: "Enter password for artifactory publish user:"
+      private: yes
+
+    - name: "publish_user_email"
+      prompt: "Enter email id for artifactory publish user:"
+      private: no
+
+  vars_files:
+    - vars/onboarding_vars.yml
+
+  vars:
+    delete_repo_params:
+      - { key: 'maven', type: 'virtual' }
+      - { key: 'docker', type: 'virtual' }
+      - { key: 'generic', type: 'virtual' }
+      - { key: 'generic', type: 'local' }
+      - { key: 'docker', type: 'local' }
+      - { key: 'docker-sig', type: 'local'}
+      - { key: 'sbt-release', type: 'local' }
+      - { key: 'sbt-snapshot', type: 'local' }
+      - { key: 'npm', type: 'local' }
+      - { key: 'pypi', type: 'local' }
+      - { key: 'ruby', type: 'local' }
+      - { key: 'release', type: 'local' }
+      - { key: 'snapshot', type: 'local' }
+
+  roles:
+    # To create artifactory ro user
+    - { role: art-create-user,
+        tags: [ 'create-user-ro' ],
+        create_user_name:  "{{ project_name }}-ro",
+        create_user_email: "{{ ro_user_email }}", 
+        create_user_pass: "{{ ro_user_password }}"  
+      }
+    
+    ## To create artifactory publish user
+    - { role: art-create-user, 
+        tags: [ 'create-user-publish' ], 
+        create_user_name: "{{ project_name }}-publish", 
+        create_user_email: "{{ publish_user_email }}", 
+        create_user_pass: "{{ publish_user_password }}" 
+      }
+
+    ## To create all types of local repositories
+    - { role: art-create-repo-local, 
+        tags: [ 'create-repo-local' ], 
+        proj_name: "{{ project_name }}"
+      }
+
+     ## To create virtual maven repository
+    - { role: art-create-repo-virtual, 
+        tags: [ 'create-maven-virtual' ], 
+        repo_key: "{{ project_name }}-maven-virtual", 
+        pkg_type: 'maven', 
+        sel_repo_list: '[ 
+                          "{{ project_name }}-release-local", 
+                          "{{ project_name }}-snapshot-local",
+                           "jcenter"
+                        ]',
+        layout_type: "maven-2-default", 
+        sel_repo_key: "{{ project_name }}-release-local" 
+      }
+
+    ## To create virtual docker repository
+    - { role: art-create-repo-virtual, 
+        tags: [ 'create-docker-virtual' ], 
+        repo_key: "{{ project_name }}-docker-virtual", 
+        pkg_type: 'docker', 
+        sel_repo_list: '[ 
+                          "{{ project_name }}-docker-local" 
+                        ]', 
+        layout_type: "simple-default", 
+        sel_repo_key: "{{ project_name }}-docker-local" 
+      }
+
+    ## To create virtual generic repository
+    - { role: art-create-repo-virtual, 
+        tags: [ 'create-generic-virtual' ], 
+        repo_key: "{{ project_name }}-generic-virtual", 
+        pkg_type: 'generic', 
+        sel_repo_list: '[ 
+                          "{{ project_name }}-generic-local",
+                          "jcenter-remote"
+                        ]', 
+        layout_type: "simple-default", 
+        sel_repo_key: "{{ project_name }}-generic-local" 
+      }
+
+    ## To create ro permissions target
+    - { role: art-create-perms, 
+        tags: [ 'create-perms-ro' ], 
+        target_name: "{{ project_name }}-ro", 
+        repo_list: '[ 
+                      "{{ project_name }}-generic-local",
+                      "{{ project_name }}-docker-local",
+                      "{{ project_name }}-sbt-local",
+                      "{{ project_name }}-npm-local",
+                      "{{ project_name }}-pypi-local",
+                      "{{ project_name }}-ruby-local",
+                      "{{ project_name }}-release-local", 
+                      "{{ project_name }}-snapshot-local"
+                    ]', 
+        art_user: "{{ project_name }}-ro",
+        user_perms: "{{ ro_user_perms }}"
+      }
+
+    ## To create publish permissions target
+    - { role: art-create-perms, 
+        tags: [ 'create-perms-publish' ], 
+        target_name: "{{ project_name }}-publish", 
+        repo_list: '[ 
+                      "{{ project_name }}-generic-local",
+                      "{{ project_name }}-docker-local",
+                      "{{ project_name }}-sbt-local",
+                      "{{ project_name }}-npm-local",
+                      "{{ project_name }}-pypi-local",
+                      "{{ project_name }}-ruby-local",
+                      "{{ project_name }}-release-local", 
+                      "{{ project_name }}-snapshot-local"
+                    ]', 
+        art_user: "{{ project_name }}-publish",
+        user_perms: "{{ publish_user_perms }}"
+      }
+ 
+    ## To get user api key
+    - { role: art-get-apikey, 
+        tags: [ 'art-get-apikey' ] 
+      }
+    
+    ## To delete all types of repositories - local/virtual
+    - { role: art-delete-repo, 
+        tags: [ 'art-delete-repo' ], 
+        proj_name: "{{ project_name }}" 
+      }
+
+    ## To delete artifactory ro user
+    - { role: art-delete-user, 
+        tags: [ 'delete-user-ro' ], 
+        delete_user_name:  "{{ project_name }}-ro" 
+      }
+
+    ## To delete artifactory publish user
+    - { role: art-delete-user, 
+        tags: [ 'delete-user-publish' ], 
+        delete_user_name:  "{{ project_name }}-publish" 
+      }
+
+    ## To delete ro permissions target
+    - { role: art-delete-perms, 
+        tags: [ 'delete-perms-ro' ], 
+        target_name: "{{ project_name }}-ro" 
+      }
+
+    ## To delete publish permissions target
+    - { role: art-delete-perms, 
+        tags: [ 'delete-perms-publish' ], 
+        target_name: "{{ project_name }}-publish" 
+      }
+
+

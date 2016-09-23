@@ -1,0 +1,40 @@
+---
+# Create artifactory local repo
+
+ - name: local repo
+   uri:
+    url: "{{ art_url }}/{{ repo_endpoint }}/{{ repo_key }}"
+    method: PUT
+    user: "{{ admin_user_name }}"
+    password: "{{ admin_api_key }}"
+    body: >
+      {
+        "key" : "{{ repo_key }}",
+        "rclass" : "{{ local_repo_type }}",
+        "packageType" : "{{ pkg_type }}",
+        "description" : "",
+        "notes" : "created by ansible playbook",
+        "includesPattern" : "**/*",
+        "excludesPattern" : "",
+        "repoLayoutRef" : "{{ layout_type }}",
+        "debianTrivialLayout" : false,
+        "handleReleases" : "{{ isRelease }}",
+        "handleSnapshots" : "{{ isSnapshot }}",
+        "maxUniqueSnapshots" : "{{ max_uniq_snap }}",
+        "snapshotVersionBehavior": "{{ snap_bh }}",
+        "suppressPomConsistencyChecks" : "{{ isPomCheck }}",
+        "blackedOut" : false,
+        "archiveBrowsingEnabled" : false,
+        "calculateYumMetadata" : false,
+        "yumRootDepth" : 0,
+        "dockerApiVersion" : "V2"
+      }
+    HEADER_Content-Type: "application/json"
+    return_content: yes
+    dest: "{{ ansible_env.HOME }}/{{ repo_key }}-create.txt"
+    status_code: 200
+    body_format: json
+   register: webpage
+    
+ - name: webpage response
+   debug: var=webpage.content

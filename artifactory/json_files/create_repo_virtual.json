@@ -1,0 +1,15 @@
+{
+    "key" : "{{ repo_key }}",
+    "rclass" : "virtual",
+    "packageType" : "{{ pkg_type }}",
+    "repositories":  "",
+    "description" : "",
+    "notes" : "created by ansible playbook",
+    "includesPattern" : "**/*",
+    "excludesPattern" : "",
+    "repoLayoutRef" : "",
+    "debianTrivialLayout" : false,
+    "artifactoryRequestsCanRetrieveRemoteArtifacts" : false,
+    "pomRepositoryReferencesCleanupPolicy" : "discard_active_reference",
+    "defaultDeploymentRepo" : ""
+}

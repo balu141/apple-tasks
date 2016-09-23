@@ -1,0 +1,6 @@
+---
+# vars file for art-delete-repo
+
+repo_endpoint: "api/repositories"
+
+

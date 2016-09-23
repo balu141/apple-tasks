@@ -1,0 +1,31 @@
+---
+
+# Create permissions target
+ - name: create permissions target
+   uri:
+    url: "{{ art_url }}/{{ perms_endpoint }}/{{ target_name }}"
+    method: PUT
+    user: "{{ admin_user_name }}"
+    password: "{{ admin_api_key }}"
+    body: >
+      {
+        "name" : "{{ target_name }}",
+        "includesPattern" : "**",
+        "excludesPattern" : "",
+        "repositories" : {{ repo_list }},
+        "principals": {
+          "users" : {
+            "{{ art_user }}" : {{ user_perms }}
+          }
+        }
+      }
+    HEADER_Content-Type: "application/json"
+    return_content: yes
+    dest: "{{ ansible_env.HOME }}/{{ target_name }}-create.txt"
+    force_basic_auth: yes
+    status_code: 201
+    body_format: json
+   register: webpage
+   
+ - name: webpage response
+   debug: var=webpage.content

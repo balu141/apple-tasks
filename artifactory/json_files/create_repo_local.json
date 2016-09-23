@@ -1,0 +1,20 @@
+{
+    "rclass" : "local",
+    "packageType" : "{{ pkg_type }}",
+    "description" : "",
+    "notes" : "created by ansible playbook",
+    "includesPattern" : "**/*",
+    "excludesPattern" : "",
+    "repoLayoutRef" : "simple-default",
+    "debianTrivialLayout" : false,
+    "handleReleases" : true,
+    "handleSnapshots" : false,
+    "maxUniqueSnapshots" : 0,
+    "snapshotVersionBehavior": "non-unique",
+    "suppressPomConsistencyChecks" : false,
+    "blackedOut" : false,
+    "archiveBrowsingEnabled" : false,
+    "calculateYumMetadata" : false,
+    "yumRootDepth" : 0,
+    "dockerApiVersion" : "V2"
+}

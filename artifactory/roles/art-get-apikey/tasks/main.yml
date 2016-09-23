@@ -1,0 +1,44 @@
+---
+
+# Post user api key
+  - name: post api key
+    uri:
+     url: "{{ art_url }}/{{ apikey_endpoint }}"
+     method: POST
+     user: "{{ api_user_name }}"
+     password: "{{ api_user_pass }}"
+     body: >
+      {
+        "apiKey" : "test"
+      }
+     HEADER_Content-Type: "application/json"
+     return_content: yes
+     dest: "{{ ansible_env.HOME }}/apikey-post-{{ api_user_name }}.txt"
+     force_basic_auth: yes
+     status_code: 201
+     body_format: json
+    register: webpage
+    
+      
+  - name: webpage response
+    debug: var=webpage.content
+
+# Get user api key
+  - name: get api key
+    uri:
+     url: "{{ art_url }}/{{ apikey_endpoint }}"
+     method: GET
+     user: "{{ api_user_name }}"
+     password: "{{ api_user_pass }}"
+     HEADER_Content-Type: "application/json"
+     return_content: yes
+     dest: "{{ ansible_env.HOME }}/apikey-get-{{ api_user_name }}.txt"
+     force_basic_auth: yes
+     status_code: 200
+     body_format: json
+    register: webpage
+    
+      
+  - name: webpage response
+    debug: var=webpage.content
+

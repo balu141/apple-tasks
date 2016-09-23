@@ -1,0 +1,4 @@
+---
+# vars file for art-create-user
+
+user_endpoint: "api/security/users"

@@ -1,0 +1,9 @@
+{
+  "name": "",
+  "email" : "",
+  "password": "***",
+  "admin": false,
+  "profileUpdatable": true,
+  "internalPasswordDisabled": false,
+  "groups" : []
+}

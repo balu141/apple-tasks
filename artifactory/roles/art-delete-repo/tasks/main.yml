@@ -1,0 +1,9 @@
+---
+## task file for art-delete-repo
+
+- name: delete local/virtual repos
+  include: art-delete-repo.yml
+  vars:
+    repo_key: "{{ project_name }}-{{ item.key }}-{{ item.type }}"
+  with_items: "{{ delete_repo_params }}"
+

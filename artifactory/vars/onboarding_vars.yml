@@ -1,0 +1,25 @@
+---
+## vars file to be used across roles
+
+local_repo_params:
+- { key: 'generic', pkg_type: 'generic', layout_type: 'simple-default', isRelease: 'false', isSnapshot: 'false', isPomCheck: 'false', snap_bh: 'non-unique', max_uniq_snap: '0' }
+- { key: 'docker-sig', pkg_type: 'generic', layout_type: 'simple-default', isRelease: 'false', isSnapshot: 'false', isPomCheck: 'false', snap_bh: 'non-unique', max_uniq_snap: '0' }
+- { key: 'docker', pkg_type: 'docker', layout_type: 'simple-default', isRelease: 'false', isSnapshot: 'false', isPomCheck: 'false', snap_bh: 'non-unique', max_uniq_snap: '0' }
+- { key: 'sbt-release', pkg_type: 'sbt', layout_type: 'sbt-default', isRelease: 'true', isSnapshot: 'false', isPomCheck: 'false', snap_bh: 'unique', max_uniq_snap: '0' }
+- { key: 'sbt-snapshot', pkg_type: 'sbt', layout_type: 'sbt-default', isRelease: 'false', isSnapshot: 'true', isPomCheck: 'false', snap_bh: 'non-unique', max_uniq_snap: '0' }
+- { key: 'npm', pkg_type: 'npm', layout_type: 'npm-default', isRelease: 'false', isSnapshot: 'false', isPomCheck: 'false', snap_bh: 'non-unique', max_uniq_snap: '0' }
+- { key: 'pypi', pkg_type: 'pypi', layout_type: 'simple-default', isRelease: 'false', isSnapshot: 'false', isPomCheck: 'false', snap_bh: 'non-unique', max_uniq_snap: '0' }
+- { key: 'ruby', pkg_type: 'gems', layout_type: 'simple-default', isRelease: 'false', isSnapshot: 'false', isPomCheck: 'false', snap_bh: 'non-unique', max_uniq_snap: '0' }
+- { key: 'release', pkg_type: 'maven', layout_type: 'maven-2-default', isRelease: 'true', isSnapshot: 'false', isPomCheck: 'false', snap_bh: 'unique', max_uniq_snap: '0' }
+- { key: 'snapshot', pkg_type: 'maven', layout_type: 'maven-2-default', isRelease: 'false', isSnapshot: 'true', isPomCheck: 'false', snap_bh: 'unique', max_uniq_snap: '3' }
+
+ro_user_perms: '["r"]'
+publish_user_perms: '["r", "w", "n"]'
+
+
+
+
+
+
+
+

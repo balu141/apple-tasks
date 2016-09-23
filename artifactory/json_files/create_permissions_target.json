@@ -1,0 +1,11 @@
+{
+  "includesPattern": "**",
+  "excludesPattern": "",
+  "repositories" : "",
+  "principals" : {
+  	"users" : {
+  	},
+  	"groups" : {
+  	}
+  }
+}

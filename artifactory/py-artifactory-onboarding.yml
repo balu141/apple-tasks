@@ -1,0 +1,222 @@
+## playbook for py artifactory onboarding
+---
+- hosts: localhost
+  gather_facts: yes
+
+  vars_prompt:
+    - name: "project_name"
+      prompt: "Enter project name:"
+      private: no
+
+    # - name: "project_name_update"
+    #   prompt: "Enter new project name:"
+    #   private: no
+
+    - name: "ro_user_password"
+      prompt: "Enter password for artifactory ro user:"
+      private: yes
+
+    - name: "ro_user_email"
+      prompt: "Enter email id for artifactory ro user:"
+      private: no
+      
+    - name: "publish_user_password"
+      prompt: "Enter password for artifactory publish user:"
+      private: yes
+
+    - name: "publish_user_email"
+      prompt: "Enter email id for artifactory publish user:"
+      private: no
+
+  vars_files:
+    - vars/onboarding_vars.yml
+  
+  tasks:
+
+  # create artifactory ro user for the project
+  - name: ro user
+    artifactory_user:
+      create_user: "{{ project_name }}-ro"
+      ro_user_email: "{{ ro_user_email }}"
+      ro_user_pass: "{{ ro_user_password }}"
+      instances: "{{ art_instances }}"
+    register: create_ro_user
+
+  - debug: var=create_ro_user
+
+  # create artifactory publish user for the project
+  - name: publish user
+    artifactory_user:
+      create_user: "{{ project_name }}-publish"
+      ro_user_email: "{{ publish_user_email }}"
+      ro_user_pass: "{{ publish_user_password }}"
+      instances: "{{ art_instances }}"
+    register: create_publish_user
+
+  - debug: var=create_publish_user
+
+  # create all the local repositories for the project
+  - name: all local repos 
+    artifactory_repo:
+      repo_key: "{{ project_name }}-{{ item.key }}-local"
+      package_type: "{{ item.pkg_type }}"
+      repo_type: "local"
+      repo_layout: "{{ item.layout_type }}"
+      isRelease: "{{ item.isRelease }}"
+      isSnapshot: "{{ item.isSnapshot }}"
+      suppressPomCheck: "{{ item.isPomCheck }}"
+      snap_bh: "{{ item.snap_bh }}"
+      max_uniq_snap: "{{ item.max_uniq_snap }}"
+      instances: "{{ art_instances }}"
+    with_items: "{{ local_repo_params }}"
+    register: create_local_repo
+
+  - debug: var=create_local_repo
+
+  # create maven virtual repository for the project
+  - name: maven virtual
+    artifactory_repo:
+      repo_key: "{{ project_name }}-maven-virtual"
+      package_type: "maven"
+      repo_type: "virtual"
+      repo_layout: "maven-2-default"
+      repositories:
+        - "{{ project_name }}-release-local"
+        - "{{ project_name }}-snapshot-local"
+        - "remote-repos"
+      instances: "{{ art_instances }}"
+    register: create_maven_virtual
+
+  - debug: var=create_maven_virtual
+
+  # create docker virtual repository for the project
+  - name: docker virtual
+    artifactory_repo:
+      repo_key: "{{ project_name }}-docker-virtual"
+      package_type: "docker"
+      repo_type: "virtual"
+      repo_layout: "simple-default"
+      repositories:
+        - "{{ project_name }}-docker-local"
+      instances: "{{ art_instances }}"
+    register: create_docker_virtual
+
+  - debug: var=create_docker_virtual
+
+  # create generic virtual repository for the project
+  - name: generic virtual
+    artifactory_repo:
+      repo_key: "{{ project_name }}-generic-virtual"
+      package_type: "generic"
+      repo_type: "virtual"
+      repo_layout: "simple-default"
+      repositories:
+        - "{{ project_name }}-generic-local"
+        - "jcenter-remote"
+      instances: "{{ art_instances }}"
+    register: create_generic_virtual
+
+  - debug: var=create_generic_virtual
+
+  # create ro permissions target for the project
+  - name: ro permissions
+    artifactory_perms:
+      create_perms: "{{ project_name }}-ro"
+      repositories:
+          - "{{ project_name }}-generic-local"
+          - "{{ project_name }}-docker-sig-local"
+          - "{{ project_name }}-docker-local"
+          - "{{ project_name }}-sbt-release-local"
+          - "{{ project_name }}-sbt-snapshot-local"
+          - "{{ project_name }}-npm-local"
+          - "{{ project_name }}-pypi-local"
+          - "{{ project_name }}-ruby-local"
+          - "{{ project_name }}-release-local"
+          - "{{ project_name }}-snapshot-local"
+      options:
+        repositories:
+          - "{{ project_name_update }}-generic-local"
+          - "{{ project_name_update }}-docker-sig-local"
+          - "{{ project_name_update }}-release-local"
+          - "{{ project_name_update }}-snapshot-local"
+          - "{{ project_name_update }}-docker-local"
+          - "{{ project_name_update }}-sbt-release-local"
+          - "{{ project_name_update }}-sbt-snapshot-local"
+          - "{{ project_name_update }}-npm-local"
+          - "{{ project_name_update }}-pypi-local"
+          - "{{ project_name_update }}-ruby-local"
+      instances: "{{ art_instances }}"
+    register: create_ro_perms
+
+  - debug: var=create_ro_perms
+
+  # create publish permissions target for the project
+  - name: publish permissions
+    artifactory_perms:
+      create_perms: "{{ project_name }}-publish"
+      repositories:
+        - "{{ project_name }}-generic-local"
+        - "{{ project_name }}-docker-sig-local"
+        - "{{ project_name }}-ruby-local"
+        - "{{ project_name }}-release-local"
+        - "{{ project_name }}-snapshot-local"
+        - "{{ project_name }}-docker-local"
+        - "{{ project_name }}-sbt-release-local"
+        - "{{ project_name }}-sbt-snapshot-local"
+        - "{{ project_name }}-npm-local"
+        - "{{ project_name }}-pypi-local"
+      options:
+        repositories:
+          - "{{ project_name_update }}-sbt-release-local"
+          - "{{ project_name_update }}-sbt-snapshot-local"
+          - "{{ project_name_update }}-npm-local"
+          - "{{ project_name_update }}-pypi-local"
+          - "{{ project_name_update }}-ruby-local"
+          - "{{ project_name_update }}-release-local"
+          - "{{ project_name_update }}-snapshot-local"
+          - "{{ project_name_update }}-generic-local"
+          - "{{ project_name_update }}-docker-sig-local"
+          - "{{ project_name_update }}-docker-local"
+      perms_type: publish
+      instances: "{{ art_instances }}"
+    register: create_publish_perms
+
+  - debug: var=create_publish_perms
+
+  # - name: full-mesh topology 
+  #   artifactory_repo:
+  #     repo_key: "zpoc-docker-local"
+  #     package_type: "docker"
+  #     repo_type: "local"
+  #     repo_layout: "simple-default"
+  #     topology: "full-mesh"
+  #     instances: "{{ art_instances }}"
+  #   register: create_topo_result
+
+  # - debug: var=create_topo_result
+
+  # - name: create remote repo 
+  #   artifactory_repo:
+  #     repo_key: "apoc-remote-repos"
+  #     package_type: "generic"
+  #     repo_type: "remote"
+  #     # repo_layout: "simple-default"
+  #     # topology: "full-mesh"
+  #     instances: "{{ art_instances }}"
+  #     # options:
+  #     #   url: "https://services.gradle.org/distributions"
+  #   register: create_remote_result
+
+  # - debug: var=create_remote_result
+
+  # - name: create art group
+  #   artifactory_group:
+  #     create_group: zpoc-ro
+  #     instances: "{{ art_instances }}"
+  #   register: create_group_result
+
+  # - debug: var=create_group_result
+
+  - name: get user api key
+    set_fact:
+     user_apikey: "{{ lookup('get_apikey', 'instances={{ art_instances }}') }}"

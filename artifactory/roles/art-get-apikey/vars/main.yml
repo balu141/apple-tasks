@@ -1,0 +1,9 @@
+---
+# vars file for art-get-apikey
+
+apikey_endpoint: "api/security/apiKey"
+
+api_user_name: "manhattan-ro"
+api_pass: "zFLDp8DJks2DAj"
+
+# user_encrypted_passwd: "AP5x9ShVSgxHGTJ1h6zvsgeWc6N"
