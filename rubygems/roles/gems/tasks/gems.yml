@@ -1,0 +1,22 @@
+---
+
+   - name: Check whether our gem sources exists
+     become: yes
+     become_user: vagrant
+     shell: gem sources -r https://rubygems.org/
+
+   - name: Add Sources
+     become: yes
+     become_user: vagrant
+     shell: gem sources -a https://rubygems.apple.com
+
+   - name: Add Sources
+     become: yes
+     become_user: vagrant
+     shell: gem sources -a https://artl-iag.apple.com/artifactory/api/gems/all-gems/
+
+
+   - gem: name={{ item }} state=present
+     become: yes
+     become_user: vagrant
+     with_items: [ kdp , simple ,nexus ,chronic ,cucumber , gherkin ]
