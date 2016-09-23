@@ -1,0 +1,147 @@
+#!/bin/bash
+#
+# (c) Nginx, Inc.
+
+RPM2CPIO=/usr/bin/rpm2cpio
+NGXUSER=`/usr/bin/id -nu`
+NGXCERT=
+NGXKEY=
+NGXPATH=
+RPMDIR=
+CURDIR=`pwd`
+WGET="/usr/bin/wget --no-check-certificate"
+CPIO="/bin/cpio"
+TAR="/bin/tar"
+SED="/bin/sed -i"
+RHELVER={{ nginx_os_version }}
+REPOURL="https://plus-pkgs.nginx.com/rhel"
+ARCH="x86_64"
+#HTTPPORT=8081
+export LC_ALL=C
+
+usage() {
+    echo
+    echo "Script downloads nginx-plus rpm from nginx-plus repository,"
+    echo "creates nginx config that allows to run nginx as non root"
+    echo "user in the specified directory"
+    echo
+    echo "$0 [-c cert_file -k key_file| -d dir] -p path [-v rhelver] version"
+    echo "    cert_file - path to you subscription certificate file"
+    echo "    key_file - path to you subscription private key file"
+    echo "    path      - nginx prefix path"
+    echo "    version   - nginx package version"
+    echo "    dir       - directory with nginx-plus rpm"
+    echo "    rhelver   - RHEL/CentOS version: 5,6 or 7. default is $RHELVER"
+    echo
+    echo "Example: $0 -c /tmp/nginx-repo.crt -k nginx-repo.key -p /opt/nginx 1.9.9-4"
+    echo
+    echo "or with downloaded rpm:"
+    echo "$0 -d /tmp -p /opt/nginx 1.9.9-4"
+    echo
+    exit
+}
+
+
+args=`getopt c:k:a:p:v:d:h $*`
+set -- $args
+
+for opt
+do
+    case "$opt" in
+        -c) NGXCERT=$2; shift; shift;;
+        -k) NGXKEY=$2;  shift; shift;;
+        -p) NGXPATH=$2; NGXPATH=${NGXPATH%%/}; shift; shift;;
+        -v) RHELVER=$2; shift; shift;;
+        -d) RPMDIR=$2; shift; shift;;
+        -h) usage; shift;;
+        --) shift; break;;
+    esac
+done
+
+if [ $# -ne 1 ]; then
+    usage
+fi
+
+NGXVER=$1
+NGXRPM=nginx-$NGXVER.el$RHELVER.ngx.$ARCH.rpm
+NGXCPIO=${NGXRPM%%.rpm}.cpio
+TMPDIR=`mktemp -dq /tmp/nginx-prefix.XXXXXXXX`
+cd $TMPDIR
+
+if [ ! -z $RPMDIR ]
+then
+    if [ ! -f $RPMDIR/$NGXRPM ]
+    then
+        echo "Cannot find nginx-plus rpm: $RPMDIR/$NGXRPM"
+        exit
+    fi
+    cp $RPMDIR/$NGXRPM $TMPDIR/
+else
+    if [ ! -f $NGXCERT ]
+    then
+        echo "No subscription certificate file found"
+        exit
+    fi
+
+    if [ ! -f $NGXKEY ]
+    then
+        echo "No subscription private file found"
+        exit
+    fi
+
+
+    $WGET --certificate=$NGXCERT --private-key=$NGXKEY \
+        $REPOURL/$RHELVER/$ARCH/RPMS/$NGXRPM
+
+    if [ $? -ne 0 ]
+    then
+        echo "Failed to download rpm. See reason above."
+        exit
+    fi
+fi
+
+$RPM2CPIO $NGXRPM > $NGXCPIO
+$CPIO -id < $NGXCPIO
+rm -f $NGXRPM $NGXCPIO
+echo $NGXPATH
+
+$SED "s|\([ ^t]*access_log[ ^t]*\)/var/log/nginx/|\1$NGXPATH/log/|" $TMPDIR/etc/nginx/nginx.conf
+$SED "s|\([ ^t]*error_log[ ^t]*\)/var/log/nginx/|\1$NGXPATH/log/|" $TMPDIR/etc/nginx/nginx.conf
+$SED "s|\([ ^t]*pid[ ^t]*\)/|\1$NGXPATH/|" $TMPDIR/etc/nginx/nginx.conf
+$SED "s|\([ ^t]*include[ ^t]*\)/|\1$NGXPATH/|" $TMPDIR/etc/nginx/nginx.conf
+$SED "s|\([ ^t]*root[ ^t]*\)/|\1$NGXPATH/|" $TMPDIR/etc/nginx/nginx.conf
+$SED "s|\([ ^t]*user[ ^t]*\)nginx|user  {{ nginx_user }}|" $TMPDIR/etc/nginx/nginx.conf
+
+$SED "s|http {|http {\n    client_body_temp_path $NGXPATH/var/cache/nginx/client_temp;|" \
+    $TMPDIR/etc/nginx/nginx.conf
+$SED "s|http {|http {\n    proxy_temp_path       $NGXPATH/var/cache/nginx/proxy_temp_path;|" \
+    $TMPDIR/etc/nginx/nginx.conf
+$SED "s|http {|http {\n    fastcgi_temp_path     $NGXPATH/var/cache/nginx/fastcgi_temp;|" \
+    $TMPDIR/etc/nginx/nginx.conf
+$SED "s|http {|http {\n    uwsgi_temp_path       $NGXPATH/var/cache/nginx/uwsgi_temp;|" \
+    $TMPDIR/etc/nginx/nginx.conf
+$SED "s|http {|http {\n    scgi_temp_path        $NGXPATH/var/cache/nginx/scgi_temp;|" \
+    $TMPDIR/etc/nginx/nginx.conf
+
+# $SED "s|\([ ^t]*access_log[ ^t]*\)/var/log/nginx/|\1$NGXPATH/log/|" $TMPDIR/etc/nginx/conf.d/default.conf
+# $SED "s|\([ ^t]*root[ ^t]*\)/|\1$NGXPATH/|" $TMPDIR/etc/nginx/conf.d/default.conf
+# $SED "s|\([ ^t]*listen[ ^t]*\)80|\1$HTTPPORT|" $TMPDIR/etc/nginx/conf.d/default.conf
+
+mkdir -p $TMPDIR/var/run
+mkdir -p $TMPDIR/var/log/nginx
+mkdir -p $NGXPATH/log
+rm -rf $TMPDIR/etc/logrotate.d
+
+$TAR -cf {{ nginx_home }}/nginx-$NGXVER.tar .
+rm -rf $TMPDIR
+echo
+echo "Tarball was created, you may find it in {{ nginx_home }}/nginx-$NGXVER.tar"
+echo "Create directory $NGXPATH if it is not exist yet and"
+echo "extract it to $NGXPATH with command:"
+echo
+echo "cd $NGXPATH && tar -xf {{ nginx_home }}/nginx-$NGXVER.tar"
+echo
+echo "Then start nginx with:"
+echo
+echo "$NGXPATH/usr/sbin/nginx -c $NGXPATH/etc/nginx/nginx.conf"
+echo

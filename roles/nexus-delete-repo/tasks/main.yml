@@ -1,0 +1,22 @@
+- name: Gather the Repositories Available
+  uri:
+   url: "{{nexus_url}}/{{ nexus_endpoint }}/{{ nexus_repositories_service }}"
+   validate_certs: False
+   method: GET 
+   user: "{{ nexus_admin }}"
+   password: "{{ nexus_admin_password }}"
+   force_basic_auth: yes
+   return_content: yes
+  register: repo_data
+
+- name: Delete the Repository
+  uri:
+   url: "{{nexus_url}}/{{ nexus_endpoint }}/{{ nexus_repositories_service }}/{{ repoId }}"
+   validate_certs: False
+   method: DELETE
+   user: "{{ nexus_admin }}"
+   password: "{{ nexus_admin_password }}"
+   force_basic_auth: yes
+   return_content: yes
+   status_code: 204
+  when: '"{{ repoId }}" in repo_data.content'

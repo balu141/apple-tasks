@@ -1,0 +1,24 @@
+- name: Gather User Details
+  uri:
+   url: "{{nexus_url}}/{{ nexus_endpoint }}/{{ nexus_users_service }}"
+   validate_certs: False
+   method: GET 
+   user: "{{ nexus_admin }}"
+   password: "{{ nexus_admin_password }}"
+   force_basic_auth: yes
+   return_content: yes
+  register: user_data
+
+- name: Delete the User
+  uri:
+   url: "{{nexus_url}}/{{ nexus_endpoint }}/{{ nexus_users_service }}/{{ userId }}"
+   validate_certs: False
+   method: DELETE
+   user: "{{ nexus_admin }}"
+   password: "{{ nexus_admin_password }}"
+   force_basic_auth: yes
+   return_content: yes
+   status_code: 204
+  when: '"{{ userId }}" in user_data.content'
+
+

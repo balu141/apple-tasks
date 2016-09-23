@@ -1,0 +1,5 @@
+---
+# variable Declaration
+
+nginx_artifactory_url: "https://artifactory-iag.apple.com/nginx-oss/centos/{{ nginx_os_version }}/x86_64/RPMS/nginx-{{ nginx_rpm_version}}.el{{ nginx_os_version }}.ngx.x86_64.rpm"
+dns: "{{ ansible_fqdn }}"

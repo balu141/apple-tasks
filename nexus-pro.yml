@@ -1,0 +1,16 @@
+---
+- hosts: all
+  gather_facts: yes
+  roles:
+    - { role: basic }
+    - { role: java, java_home: /home/vagrant, type: jre, version: 8u71, java_version: 1.8.0_71 }
+    - { role: nexus ,nexus_home: /home/vagrant, nexus_version: professional-2.11.1-01 , nexus_type: professional-bundle }
+    #- { role: nginx , nginx_os_version: 7, nginx_rpm_version: 1.10.0-1, nginx_user: vagrant, nginx_home: /opt/local, nginx_port: 443, config_file: nexus }
+
+### vagrant
+
+##    ansible-playbook nexus-pro.yml --ask-vault-pass
+
+### DC
+
+##    ansible-playbook -i <inventory> nexus-pro.yml -e @"nexus-pro-vault.yml" --become --become-user=iagcit -u <user> --ask-become-pass -k --ask-vault-pass

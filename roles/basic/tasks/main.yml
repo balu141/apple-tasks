@@ -1,0 +1,9 @@
+---
+ - name: Check for the Home Directory
+   stat:
+     path: "{{base_dir}}"
+   register: check_home
+
+ - include: create_dir_structure.yml
+   when: check_home.stat.exists == false
+

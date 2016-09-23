@@ -1,0 +1,11 @@
+# Jetty section
+application-port={{nexus_http_port}}
+application-host=0.0.0.0
+application-port-ssl={{nexus_https_port}}
+nexus-webapp=${bundleBasedir}/nexus
+nexus-webapp-context-path=/nexus
+
+# Nexus section
+nexus-work={{nexus_work}}
+runtime=${bundleBasedir}/nexus/WEB-INF
+org.sonatype.nexus.proxy.maven.routing.Config.prefixFileMaxSize=500000

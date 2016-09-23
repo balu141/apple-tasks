@@ -1,0 +1,15 @@
+---
+- hosts: all
+  gather_facts: yes
+  roles:
+    - { role: basic }
+    - { role: java, java_home: /opt/local, type: jre, version: 8u71, java_version: 1.8.0_71 }
+    - { role: nexus-iq ,nexus_iq_home: /opt/local, nexus_iq_version: 1.21.0-02, nexus_iq_port: 8070 }
+
+### vagrant
+
+#    ansible-playbook nexus-iq.yml
+
+### DC
+
+#    ansible-playbook -i <inventory> nexus-iq.yml --become --become-user=iagcit -u <user> --ask-become-pass -k

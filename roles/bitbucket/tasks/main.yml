@@ -1,0 +1,61 @@
+---
+# tasks file for installing bit Bucket
+
+- name: Copy JAVA_HOME location to variable
+  become: yes
+  become_user: vagrant
+  command:  bash -c -l "echo $JAVA_HOME"
+  register: java_loc
+ 
+- name: Where is Bash
+  command: bash -c -l "which bash"
+  register: whereis_bash
+
+- name: Check whether Git Package is Installed
+  command: rpm -q git
+  register: git_check
+
+- name: Fail if Git is not installed
+  fail: msg="Git not Installed"
+  when: git_check.stdout.find('is not installed') != -1
+
+- name: Create the bitbucket work
+  file:
+     path: "{{ bitbucket_work }}"
+     state: "directory"
+
+- name: extract nexus to {{bitbucket_home}}
+  unarchive: 
+     src: "{{bitbucket_download_url}}" 
+     dest: "{{bitbucket_home}}" 
+     copy: "no"
+
+- name: Remove the set Bitbucket Home file
+  file:
+    dest: "{{ bitbucket_home }}/atlassian-bitbucket-4.8.3/bin/set-bitbucket-home.sh"
+    state: "absent"
+
+- name: Remote the set bitbucket user file
+  file:
+    dest: "{{ bitbucket_home }}/atlassian-bitbucket-4.8.3/bin/set-bitbucket-user.sh"
+    state: "absent"
+
+- name: Copy the Bitbucket Home Template
+  template:
+       src: set-bitbucket-home.j2
+       dest: "{{ bitbucket_home }}/atlassian-bitbucket-4.8.3/bin/set-bitbucket-home.sh"
+       mode: "0755"
+       backup: "yes"
+
+- name: Copy the Bitbucket user Tempalte
+  template:
+       src: set-bitbucket-user.j2
+       dest: "{{ bitbucket_home }}/atlassian-bitbucket-4.8.3/bin/set-bitbucket-user.sh"
+       mode: "0755"
+       backup: "yes"
+
+- name: Start the Bit Bucket
+  shell: nohup "{{ bitbucket_home }}/atlassian-bitbucket-4.8.3/bin/start-bitbucket.sh" &
+
+- name: Wait for the bitbucket Port to start
+  wait_for: port=7990 delay=5

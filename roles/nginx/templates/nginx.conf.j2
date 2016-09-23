@@ -1,0 +1,36 @@
+user  {{ nginx_user }};
+worker_processes  auto;
+
+error_log  {{ nginx_home }}/nginx-{{ nginx_port }}/log/error.log notice;
+pid        {{ nginx_home }}/nginx-{{ nginx_port }}/var/run/nginx.pid;
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    scgi_temp_path        {{ nginx_home }}/nginx-{{ nginx_port }}/var/cache/nginx/scgi_temp;
+    uwsgi_temp_path       {{ nginx_home }}/nginx-{{ nginx_port }}/var/cache/nginx/uwsgi_temp;
+    fastcgi_temp_path     {{ nginx_home }}/nginx-{{ nginx_port }}/var/cache/nginx/fastcgi_temp;
+    proxy_temp_path       {{ nginx_home }}/nginx-{{ nginx_port }}/var/cache/nginx/proxy_temp_path;
+    client_body_temp_path {{ nginx_home }}/nginx-{{ nginx_port }}/var/cache/nginx/client_temp;
+    include       {{ nginx_home }}/nginx-{{ nginx_port }}/etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  {{ nginx_home }}/nginx-{{ nginx_port }}/log/access.log  main;
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    include {{ nginx_home }}/nginx-{{ nginx_port }}/etc/nginx/conf.d/*.conf;
+}
+
+

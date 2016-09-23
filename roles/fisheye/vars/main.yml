@@ -1,0 +1,16 @@
+---
+# vars file for Installing Bit Bucket
+
+# optional variables with default
+fisheye_user: vagrant
+fisheye_home: /opt/local/
+fisheye_work: /opt/local/fisheye-work
+fisheye_archive: "fisheye-{{ version }}.zip"
+fisheye_connector_port: "7990"
+fisheye_jvm_maximum_memory: "1024m"
+fisheye_jvm_minimum_memory: "512m"
+fisheye_server_port: "8006"
+fisheye_download_url: "https://downloads.atlassian.com/software/fisheye/downloads/fisheye-{{ version }}.zip"
+#https://downloads.atlassian.com/software/stash/downloads/{{ bitbucket_archive }}"
+#https://downloads.atlassian.com/software/stash/downloads/atlassian-bitbucket-4.9.1.tar.gz
+#https://downloads.atlassian.com/software/fisheye/downloads/fisheye-4.1.2.zip

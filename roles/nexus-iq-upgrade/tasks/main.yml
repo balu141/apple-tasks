@@ -1,0 +1,124 @@
+---
+- name: create a backup directory for nexus-iq
+  file:
+    path: "{{nexus_iq_home}}/backup_nexus_iq"
+    state: directory
+
+- name: create {{ nexus_new }} directory
+  file:
+    path: "{{ nexus_new }}"
+    state: directory
+
+- name: extract nexus to {{nexus_new}}
+  unarchive:
+    src: "{{ nexus_iq_url }}"
+    dest: "{{ nexus_new }}"
+    copy: no
+    exclude:
+     - demo.bat
+
+- name: check nexus process
+  shell: ps aux | grep nexus-{{ nexus_iq_old_version }} | grep -v grep
+  register: nexus_old_status
+  ignore_errors: yes
+  failed_when: "'FAILED' in nexus_old_status"
+  changed_when: false
+
+- name: "{{ nexus_old_status }}"
+  debug: msg="{{ nexus_old_status }}"
+  no_log: yes
+
+- name: stop nexus-iq
+  shell: "{{ nexus }}/stop_nexus-iq.sh"
+  when: nexus_old_status.rc == 0
+
+- name: check for nexus-{{ nexus_iq_old_version }}.tar
+  stat:
+    path: "{{nexus_iq_home}}/nexus-iq"
+  register: tar_path
+
+- debug: msg="key exists!"
+  when: tar_path.stat.exists
+
+- debug: msg="key doesn't exist..."
+  when: tar_path.stat.exists == false
+
+- name: taking backup of the old artifactory version
+  shell: >
+    tar -zcf  nexus-{{ nexus_iq_old_version }}.tar nexus-{{ nexus_iq_old_version }}
+  args:
+    chdir: "{{ nexus_iq_home }}/nexus-iq"
+  when: tar_path.stat.exists == false
+
+- name: check for nexus-{{ nexus_iq_old_version }}.tar
+  stat:
+    path: "{{ nexus_iq_home }}/back_nexus_iq"
+  register: backup_path
+
+- debug: msg="key exists!"
+  when: backup_path.stat.exists
+
+- debug: msg="key doesn't exist..."
+  when: backup_path.stat.exists == false
+
+- name: backup tar to backup folder
+  copy:
+    src: "{{ nexus_iq_home }}/nexus-iq/nexus-{{ nexus_iq_old_version }}.tar"
+    dest: "{{ nexus_iq_home }}/backup_nexus_iq"
+    remote_src: yes
+    mode: 0744
+  when: backup_path.stat.exists
+
+- name: delete the tar after it is copied to backup_artifactory
+  file:
+    path: "{{ nexus_iq_home }}/nexus-iq/nexus-{{ nexus_iq_old_version }}.tar"
+    state: absent
+    remote_src: yes
+    mode: 0744
+  when: backup_path.stat.exists
+
+- name: symlink {{nexus_new}}
+  file:
+    src: "{{nexus_new}}"
+    dest: "{{ nexus }}"
+    state: link
+    force: yes
+
+- name: copy nexus-iq.sh start script
+  template:
+     src: nexus-iq.j2
+     dest: "{{nexus}}/nexus-iq.sh"
+     mode: 0755
+
+- name: copy stop_nexus-iq.sh stop script
+  template:
+     src: stop_nexus-iq.sh.j2
+     dest: "{{nexus}}/stop_nexus-iq.sh"
+     mode: 0755
+
+- name: copy the config.yml from {{ nexus_old }} to {{ nexus_iq_home }}
+  copy:
+    remote_src: yes
+    src: "{{ nexus_old }}/config.yml"
+    dest: "{{nexus}}/config.yml"
+
+- name: check nexus process
+  shell: ps aux | grep nexus-{{ nexus_iq_new_version }} | grep -v grep
+  register: nexus_new_status
+  ignore_errors: yes
+  failed_when: "'FAILED' in nexus_new_status"
+  changed_when: false
+
+- name: "{{ nexus_new_status }}"
+  debug: msg="{{ nexus_new_status }}"
+  no_log: yes
+
+- name: start nexus_iq
+  shell: nohup "{{ nexus }}/nexus-iq.sh" &
+  when: nexus_new_status.rc != 0
+
+- name: Wait for the nexus-iq Port to start
+  wait_for:
+    port: "{{ nexus_iq_port }}"
+    delay: 20
+

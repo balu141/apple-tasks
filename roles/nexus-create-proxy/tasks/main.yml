@@ -1,0 +1,56 @@
+- name: Maker a Call
+  uri:
+   url: "{{nexus_url}}/{{ nexus_endpoint }}/{{ nexus_repositories_service }}"
+   validate_certs: False
+   method: GET 
+   user: "{{ nexus_admin }}"
+   password: "{{ nexus_admin_password }}"
+   force_basic_auth: yes
+   return_content: yes
+  register: repo_data
+
+# - debug: msg= "{{ repo_data }}"
+
+- name: Make a Proxy Repository
+  uri:
+    url: "{{nexus_url}}/{{ nexus_endpoint }}/{{ nexus_repositories_service }}"
+    validate_certs: False
+    method: POST
+    body: >
+     { 
+      data: { 
+        "repoType": "{{ proxy_repo_data.repoType }}",
+        "id": "{{ repoId }}",
+        "name": "{{ repoName }}",
+        "provider": "{{ repoProvider}}",
+        "browseable": {{ proxy_repo_data.browseable }},
+        "indexable": {{ proxy_repo_data.indexable }},
+        "notFoundCacheTTL": {{ proxy_repo_data.notFoundCacheTTL }}, 
+        "artifactMaxAge": {{ proxy_repo_data.artifactMaxAge }}, 
+        "metadataMaxAge": {{ proxy_repo_data.metadataMaxAge }},
+        "itemMaxAge": {{ proxy_repo_data.itemMaxAge }},
+        "repoPolicy": {{ proxy_repo_data.repoPolicy }},
+        "providerRole": {{ proxy_repo_data.providerRole }},
+        "downloadRemoteIndexes": {{ proxy_repo_data.downloadRemoteIndexes }}, 
+        "autoBlockActive": {{ proxy_repo_data.autoBlockActive }}, 
+        "fileTypeValidation": {{ proxy_repo_data.fileTypeValidation }}, 
+        "exposed": {{ proxy_repo_data.exposed }}, 
+        "checksumPolicy": {{ proxy_repo_data.checksumPolicy }},
+        "remoteStorage": {
+                              "remoteStorageUrl": "https://nexus:9443/local",
+                              "authentication": null,
+                              "connectionSettings": null
+                           }
+           }
+     }
+    user: "{{ nexus_admin }}"
+    password: "{{ nexus_admin_password }}"
+    force_basic_auth: yes
+    body_format: json 
+    HEADER_Content-Type: application/json
+    HEADER_Accept: application/json,version=2
+    return_content: yes
+    status_code: 201
+  register: proxy_status   
+  when: '"{{ repoId }}" not in repo_data.content'
+

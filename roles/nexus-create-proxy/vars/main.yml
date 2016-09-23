@@ -1,0 +1,39 @@
+---
+#Varaible Declaration
+
+nexus_os_user: vagrant
+nexus_host: nexus
+nexus_port: 9443
+nexus_url: https://{{nexus_host}}:{{nexus_port}}
+nexus_endpoint: nexus/service/local
+# nexus_status_service: status
+# nexus_users_service: users 
+nexus_repositories_service: repositories
+# nexus_roles_service: roles
+nexus_admin: admin
+nexus_admin_password: admin123
+# json_body_format: json
+# xml_body_format: xml
+proxy_repo_data: 
+      {
+         "repoType": proxy,
+         "browseable": true,
+         "indexable": true,
+         "notFoundCacheTTL": 1440,
+         "artifactMaxAge": -1,
+         "metadataMaxAge": 1440,
+         "itemMaxAge": 1440,
+         "repoPolicy": "RELEASE",
+         "providerRole": "org.sonatype.nexus.proxy.repository.Repository",
+         "downloadRemoteIndexes": true,
+         "autoBlockActive": true,
+         "fileTypeValidation": true,
+         "exposed": true,
+         "checksumPolicy": "WARN",
+         "remoteStorage": {
+                        "remoteStorageUrl": "https://nexus:9443/local",
+                        "authentication": null,
+                        "connectionSettings": null
+                      }
+      }
+

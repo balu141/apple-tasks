@@ -1,0 +1,32 @@
+---
+# tasks file for deploy
+
+- name: Ensure Nexus installation directory exists
+  file:
+    path: "{{ nexus_installation_dir }}"
+    state: directory
+  sudo: true
+
+- name: Download nexus_artifactory
+  get_url: 
+    url: "{{ nexus_url }}/service/local/artifact/maven/content?r={{ repository_id }}&g={{ group_id }}&a={{ artifact_id }}&v={{ version }}&p=war"
+    dest: "{{ nexus_installation_dir }}/{{ nexus_package }}"
+    validate_certs: False
+  # method: GET
+  # user: "{{ nexus_admin }}"
+  # password: "{{ nexus_admin_password }}"
+  # force_basic_auth: yes
+  tags: download
+  sudo: no
+
+
+- name: install httpd
+  yum: name=httpd state=present
+
+- name: symbolic links
+  file:
+    src: /opt/{{ symlink_test }}
+    dest: /etc/httpd/{{ symlink_test }}
+    owner: "{{ owner }}"
+    group: "{{ group }}"
+    state: link

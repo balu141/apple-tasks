@@ -1,0 +1,5 @@
+---
+# variable Declaration
+nexus_iq_download_url: "https://artifactory-iag.apple.com/artifactory/jcenter-remote/nexus-iq-server-{{nexus_iq_version}}-bundle.tar.gz"
+nexus_iq_dir: "{{ nexus_iq_home }}/nexus-iq/nexus-{{nexus_iq_version}}"
+java_path: "{{ nexus_iq_home }}/java/default/bin/java"

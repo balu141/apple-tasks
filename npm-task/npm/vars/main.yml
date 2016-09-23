@@ -1,0 +1,7 @@
+---
+nodejs_version: v4.2.1
+nodejs_url: https://nodejs.org/dist/v4.2.1/node-{{nodejs_version}}-linux-x64.tar.gz 
+nodejs_download_dir: /tmp/node-{{nodejs_version}}-linux-x64.tar.gz
+nodejs_extracted_dir: /tmp/nodejs
+nodejs_home: /usr/local
+extra_path: export PATH=$M2:$PATH:/usr/local/nodejs/bin

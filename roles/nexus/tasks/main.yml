@@ -1,0 +1,94 @@
+---
+- name: check if nexus home exists
+  stat:
+    path: "{{nexus_home}}/nexus"
+  register: check_nexus
+
+- name: Copy JAVA_HOME location to variable
+  command:  bash -c -l "echo $JAVA_HOME"
+  register: java_loc
+  changed_when: false
+
+- name: create nexus home directory
+  file:
+    path: "{{nexus_home}}/nexus"
+    state: directory
+  when: check_nexus.stat.exists == false
+
+- name: check nexus exists
+  stat:
+    path: "{{nexus_home}}/nexus/default"
+  register: file_exists
+
+- name: extract to nexus home
+  unarchive:
+    src: "{{ nexus_download_url }}"
+    dest: "{{ nexus_home }}/nexus"
+    copy: no
+    exclude:
+     - nexus.bat
+     - windows*
+     - solaris*
+     - macos*
+     - linux-ppc-64
+     - linux-x86-32
+  register: nexus_extract
+  when: not file_exists.stat.exists
+
+- name: create default symlink
+  file:
+    src: "{{nexus_home}}/nexus/nexus-{{nexus_version}}"
+    dest: "{{nexus_home}}/nexus/default"
+    state: link
+
+- name: retrive jetty-util lib
+  command:  bash -c -l "ls {{ nexus_home }}/nexus/default/lib | grep jetty-util"
+  register: util_loc
+
+## needed when having vault in our role
+- name: keystorepass in vault
+  include_vars: "nexus-pro-vault.yml"
+  no_log: yes
+
+- name: Run the Password Generation Script for deobfuscate Password
+  script: password_generation.sh {{nexus_keystore_password}} {{ java_loc.stdout }} "{{nexus_home}}/nexus/default/lib/" {{ util_loc.stdout }}
+  register: generated_password
+  no_log: yes
+
+- name: copy jetty-https
+  template:
+    src: jetty-https.j2
+    dest: "{{nexus_home}}/nexus/default/conf/jetty-https.xml"
+    mode: 0644
+
+-  name: check keystore file
+   stat:
+     path: "{{nexus_home}}/nexus/default/conf/keystore.jks"
+   register: file_exists
+
+- name: generate keystore
+  script: keystore.sh "{{ nexus_home }}/nexus/default/conf/{{nexus_key_store_file}}" {{ nexus_keystore_password }} {{ java_loc.stdout }}
+  when: not file_exists.stat.exists
+
+- name: copy wrapper.conf
+  template:
+    src: wrapper.conf.j2
+    dest: "{{nexus_home}}/nexus/default/bin/jsw/conf/wrapper.conf"
+    mode: 0755
+
+- name: copy nexus.properties
+  template:
+    src: nexus.properties.j2
+    dest: "{{nexus_home}}/nexus/default/conf/nexus.properties"
+    mode: 0644
+
+- name: check nexus process
+  shell: ps -ef | grep nexus | grep -v grep
+  register: nexus_status
+  ignore_errors: yes
+  changed_when: false
+  failed_when: "'FAILED' in nexus_status"
+
+- name: starting the service
+  shell: "{{ nexus_home }}/nexus/default/bin/nexus start"
+  when: nexus_status.rc != 0

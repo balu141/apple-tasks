@@ -1,0 +1,44 @@
+upstream nexus {
+    server {% for host in groups['all'] %}{{ host }}{% endfor %}:9443;
+
+    }
+
+   ssl_certificate      {{ ansible_env.HOME }}/ssl/{{ dns }}.crt;
+   ssl_certificate_key  {{ ansible_env.HOME }}/ssl/{{ dns }}.key;
+   ssl_session_cache shared:SSL:1m;
+   ssl_session_timeout  5m;
+
+   ssl_ciphers  HIGH:!aNULL:!MD5;
+   ssl_prefer_server_ciphers   on;
+   client_max_body_size 0; # disable any limits to avoid HTTP 413
+   chunked_transfer_encoding on; # to avoid HTTP 411
+
+server {
+
+    listen {{ nginx_port }} ssl;
+    server_name {{ dns }};
+
+    location / {
+        root   {{ nginx_home }}/nginx-{{ nginx_port }}/usr/share/nginx/html;
+        index  index.html index.html;
+    }
+
+    client_max_body_size 1G;
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+
+    location /nexus {
+         proxy_read_timeout  60;
+         proxy_pass_header   Server;
+         proxy_cookie_path ~*^/.* /;
+         proxy_pass http://localhost:9091/nexus/;
+         proxy_set_header Host $host;
+         proxy_set_header X-Real-IP $remote_addr;
+         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+}
+

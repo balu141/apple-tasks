@@ -1,0 +1,4 @@
+# ---
+# dependencies:
+#   - { role: basic }
+#   - { role: java, java_home: /opt/local, type: jre, version: 8u71, java_version: 1.8.0_71 }

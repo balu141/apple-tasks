@@ -1,0 +1,24 @@
+---
+ - name: download Npm
+   get_url: url={{nodejs_url}} dest={{nodejs_download_dir}}
+   register: nodejs_download
+
+ - name: create {{nodejs_home}} directory
+   file: path={{nodejs_home}} state=directory
+   when: nodejs_download.changed
+
+ - name: create {{nodejs_extracted_dir}} directory
+   file: path={{nodejs_extracted_dir}} state=directory
+   when: nodejs_download.changed
+
+ - name: Create {{nodejs_home}} directory
+   file: path={{nodejs_home}}/nodejs state=directory
+   when: nodejs_download.changed
+
+ - name: extract nexus to {{nodejs_home}}
+   unarchive: src={{nodejs_download_dir}} dest={{nodejs_extracted_dir}} copy=no
+   when: nodejs_download.changed
+
+ - name: move nexus to {{nodejs_home}} directory
+   command: cp -a {{nodejs_extracted_dir}}/node-{{nodejs_version}}-linux-x64/. {{nodejs_home}}/nodejs
+   when: nodejs_download.changed

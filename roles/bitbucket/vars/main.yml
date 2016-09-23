@@ -1,0 +1,15 @@
+---
+# vars file for Installing Bit Bucket
+
+# optional variables with default
+bitbucket_user: vagrant
+bitbucket_home: /opt/local/
+bitbucket_work: /opt/local/bitbucket-work
+bitbucket_archive: "atlassian-bitbucket-{{ version }}.tar.gz"
+bitbucket_connector_port: "7990"
+bitbucket_jvm_maximum_memory: "1024m"
+bitbucket_jvm_minimum_memory: "512m"
+bitbucket_jvm_support_recommended_args: "-Datlassian.plugins.enable.wait=300"
+bitbucket_server_port: "8006"
+bitbucket_download_url: "https://downloads.atlassian.com/software/stash/downloads/{{ bitbucket_archive }}"
+#https://downloads.atlassian.com/software/stash/downloads/atlassian-bitbucket-4.9.1.tar.gz

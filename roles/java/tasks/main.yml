@@ -1,0 +1,8 @@
+---
+- name: check if file exists
+  stat:
+    path: "{{ ansible_env.HOME }}/java/{{ extracted_java_version }}"
+  register: check_java
+
+- include: install.yml
+  when: check_java.stat.exists == false

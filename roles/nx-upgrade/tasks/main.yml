@@ -1,0 +1,92 @@
+---
+# - name: Check nexus home Exists
+#   stat:
+#     path: "{{ nexus_home }}/nexus"
+#     register: check_nexus
+
+- name: extract nexus
+  unarchive:
+    src: "{{ nexus_download_url }}"
+    dest: "{{ nexus_home }}/nexus"
+    copy: no
+    exclude:
+     - nexus.bat
+     - windows*
+     - solaris*
+     - macos*
+     - linux-ppc-64
+     - linux-x86-32
+
+- name: check nexus process
+  shell: ps aux | grep nexus-{{ nexus_old_version }} | grep -v grep
+  register: nexus_old_status
+  ignore_errors: yes
+  failed_when: "'FAILED' in nexus_old_status"
+  changed_when: false
+
+- name: "{{ nexus_old_status }}"
+  debug: msg="{{ nexus_old_status }}"
+  no_log: yes
+
+- name: stop nexus if already Running
+  shell: "{{ nexus_home }}/nexus/default/bin/nexus stop"
+  when: nexus_old_status.rc == 0
+
+- name: pause for nexus to shutdown
+  pause:
+    minutes: 1
+    prompt: Making Sure the Old Nexus is Down
+
+- name: linking
+  file:
+    src: "{{ nexus_home }}/nexus/nexus-{{nexus_version}}"
+    dest: "{{ nexus_home }}/nexus/default"
+    state: link
+    force: yes
+  tags: link
+
+- name: check for keystore.jks
+  stat:
+    path: "{{ nexus_home }}/nexus/default/conf/keystore.jks"
+  register: check_keystore
+
+- name: remove keystore.jks if exists
+  file:
+    dest: "{{ nexus_home }}/nexus/default/conf/keystore.jks"
+    state: absent
+  when: check_keystore.stat.exists == false
+
+- name: copy wrapper.conf
+  copy:
+    src: "{{ nexus_home }}/nexus/nexus-{{ nexus_old_version }}/bin/jsw/conf/wrapper.conf"
+    dest: "{{ nexus_home }}/nexus/default/bin/jsw/conf/"
+    remote_src: yes
+
+- name: copy jetty-https.xml
+  copy:
+    src: "{{ nexus_home }}/nexus/nexus-{{ nexus_old_version }}/conf/{{ item }}"
+    dest: "{{ nexus_home }}/nexus/default/conf"
+    remote_src: yes
+  with_items:
+    - jetty-https.xml
+    - jetty-http-redirect-to-https.xml
+    - nexus.properties
+    - keystore.jks
+  tags: conf_files
+
+- name: check nexus process
+  shell: ps aux | grep nexus-{{ nexus_version }} | grep -v grep
+  register: nexus_new_status
+  ignore_errors: yes
+  failed_when: "'FAILED' in nexus_new_status"
+  changed_when: false
+
+- name: "{{ nexus_old_status }}"
+  debug: msg="{{ nexus_new_status }}"
+  no_log: yes
+
+- name: start nexus
+  shell: "{{ nexus_home }}/nexus/default/bin/nexus start"
+  when: nexus_new_status.rc != 0
+  tags: start
+

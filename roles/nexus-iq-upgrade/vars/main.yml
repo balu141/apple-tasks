@@ -1,0 +1,7 @@
+---
+nexus_iq_port: 8070
+nexus: "{{ nexus_iq_home }}/nexus-iq/default"
+nexus_old: "{{nexus_iq_home}}/nexus-iq/nexus-{{nexus_iq_old_version}}"
+nexus_new: "{{nexus_iq_home}}/nexus-iq/nexus-{{nexus_iq_new_version}}"
+nexus_iq_url: https://artifactory-iag.apple.com/artifactory/jcenter-remote/nexus-iq-server-{{nexus_iq_new_version}}-bundle.tar.gz
+java_path: "{{ nexus_iq_home }}/java/default/bin/java"

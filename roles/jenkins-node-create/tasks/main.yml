@@ -1,0 +1,46 @@
+---
+ - name: Copy JAVA_HOME location to variable
+   become: yes
+   become_user: vagrant
+   command:  bash -c -l "echo $JAVA_HOME"
+   register: java_loc
+
+ - name: Check for the Jenkins Slave Location for slave.jar file
+   stat:
+     path: "{{jenkins_slave_location }}/slave.jar"
+   register: check_jenkins_slave
+
+ - name: Download the New Slave Jar
+   get_url:
+     url: "{{ jenkins_master_download_slave }}"
+     dest: "{{ jenkins_slave_location }}"
+   register: jenkins_slave_download
+   when: check_jenkins_slave.stat.exists == false
+
+ - name: Download the New Jenkins-Cli.jar
+   get_url:
+     url: "{{ jenkins_master_download_cli }}"
+     dest: "{{ jenkins_slave_location }}"
+   register: jenkins_slave_download
+   when: check_jenkins_slave.stat.exists == false
+
+ - name: Copy the template
+   template:
+     src: config.j2
+     dest: "{{ jenkins_slave_location }}/config.xml"
+     mode: "0755"
+
+# - name: Copy the Jenkins Node Goory Script
+#   copy: src=config.xml dest={{ jenkins_slave_location }} owner=vagrant group=vagrant mode=0755
+
+ - name: Run the Create Node Groovy Script
+   shell: "{{java_loc.stdout}}java -jar {{jenkins_slave_location }}/jenkins-cli.jar -s {{ jenkins_master_url }} create-node < {{jenkins_slave_location }}/config.xml"
+
+ - name: Wait For the Node Creation Script to Complete
+   pause: seconds=45
+
+ - name: Start the Jenkins Slave with Node Name {{ slavename }}
+   shell: "nohup {{java_loc.stdout}}java -jar {{jenkins_slave_location }}/slave.jar -jnlpUrl {{ jenkins_slave_start_url }} -jnlpCredentials {{ jenkins_jnlp_userName }}:{{ jenkins_jnlp_token }} &"
+   register: output
+
+ - debug: msg={{ output }}

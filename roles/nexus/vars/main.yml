@@ -1,0 +1,11 @@
+---
+# variable Declaration
+
+nexus_work: "{{ nexus_home }}/nexus/sonatype-work"
+nexus_http_port: 9091
+nexus_https_port: 9443
+nexus_key_store_file: keystore.jks
+nexus_java_path: "{{ nexus_home }}/java/default/bin/java"
+nexus_artifactory_url: artifactory-iag.apple.com
+nexus_download_url: "https://{{ nexus_artifactory_url }}/artifactory/jcenter-remote/{{ nexus_type }}/nexus-{{nexus_version}}-bundle.tar.gz"
+nexus_pid: "{{ nexus_home }}/nexus/nexus-{{nexus_version}}"

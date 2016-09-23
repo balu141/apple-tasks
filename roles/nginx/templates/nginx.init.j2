@@ -1,0 +1,102 @@
+#!/bin/bash
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+IAGCITDIR={{ nginx_home }}
+NGINX=$IAGCITDIR/nginx-{{ nginx_port }}
+CONFFILE=$NGINX/etc/nginx/nginx.conf
+LOCKFILE=$NGINX/lock
+PIDFILE=$NGINX/pid
+FIXPERMS=1
+UPDATEROUTES=1
+
+# nginx looks for these compiled-in defaults before parsing the configuration
+# mkdir -p /var/cache/nginx
+# mkdir -p /var/log/nginx
+
+nginx=${NGINX}/usr/sbin/nginx
+prog=`/bin/basename $nginx`
+conffile=${CONFFILE}
+pidfile=${PIDFILE}
+SLEEPUSECS=${SLEEPUSECS-200000}
+UPGRADEWAITLOOPS=${UPGRADEWAITLOOPS-150}
+RETVAL=0
+
+start() {
+   echo -n $"Starting $prog: "
+   daemon --pidfile=${pidfile} ${nginx} -c ${conffile}
+   RETVAL=$?
+   echo
+   return $RETVAL
+}
+
+stop() {
+   echo -n $"Stopping $prog: "
+   #killproc -p ${pidfile} -d 120 ${prog}
+   daemon --pidfile=${pidfile} ${nginx} -c ${conffile} -s stop
+   RETVAL=$?
+   echo
+}
+
+reload() {
+   echo -n $"Reloading $prog: "
+   #killproc -p ${pidfile} ${prog} -HUP
+   daemon --pidfile=${pidfile} ${nginx} -c ${conffile} -s reload
+   RETVAL=$?
+   echo
+}
+
+configtest() {
+   if [ "$#" -ne 0 ] ; then
+       case "$1" in
+           -q)
+               FLAG=$1
+               ;;
+           *)
+               ;;
+       esac
+       shift
+   fi
+   daemon --pidfile=${pidfile} ${nginx} -c ${conffile} -t
+   RETVAL=$?
+
+   # If nginx is stopped, configtest will create an empty pidfile!
+   if [ ! -s $pidfile ] ; then
+       rm -f $pidfile
+   fi
+
+   return $RETVAL
+}
+
+configdump() {
+   ${nginx} -T -c ${conffile}
+   RETVAL=$?
+   return $RETVAL
+}
+
+rh_status() {
+   status -p ${pidfile} ${nginx}
+}
+
+# See how we were called.
+case "$1" in
+   start)
+       rh_status >/dev/null 2>&1 && exit 0
+       start
+       ;;
+   stop)
+       stop
+       ;;
+   reload)
+       reload
+       ;;
+   configtest)
+       configtest
+       ;;
+   *)
+       echo $"Usage: $prog {start|stop|reload|configtest}"
+       RETVAL=2
+esac
+
+exit $RETVAL

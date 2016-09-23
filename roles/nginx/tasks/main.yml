@@ -1,0 +1,165 @@
+---
+- name: create ssl folder
+  file:
+    dest: "{{ ansible_env.HOME }}/ssl"
+    state: directory
+
+- name: Check for key
+  stat:
+    path: "{{ ansible_env.HOME }}/ssl/{{ ansible_fqdn }}.key"
+  register: key_path
+
+- name: checking for the key
+  debug: msg="key exists!"
+  when: key_path.stat.exists
+
+- name: checking for the key
+  debug: msg="key doesn't exist..."
+  when: key_path.stat.exists == false
+
+- name: Check for crt
+  stat:
+    path: "{{ ansible_env.HOME }}/ssl/{{ ansible_fqdn }}.crt"
+  register: crt_path
+
+- name: Check for crt
+  debug: msg="crt exists!"
+  when: crt_path.stat.exists
+
+- name: Check for crt
+  debug: msg="crt doesn't exist..."
+  when: crt_path.stat.exists == false
+
+- name: copy the certifacte.sh script
+  template:
+    src: certificate.sh.j2
+    dest: "{{ ansible_env.HOME }}/ssl/certificate.sh"
+    mode: 0755
+
+- name: generate the key and the cert file
+  shell: "{{ ansible_env.HOME }}/ssl/certificate.sh"
+  when: key_path.stat.exists == false and crt_path.stat.exists == false
+  tags: certs
+
+- name: Check if ngxrpm2tar.sh exists
+  stat: path="{{ ansible_env.HOME }}/ngxrpm2tar.sh"
+  register: ngxrpm2tar_path
+
+- name: Check if ngxrpm2tar.sh exists
+  stat: path="{{ nginx_home }}/ngxrpm2tar.sh"
+  register: ngxrpm2tar_path
+
+- debug: msg="ngxrpm2tar.sh exists!"
+  when: ngxrpm2tar_path.stat.exists
+
+- debug: msg="ngxrpm2tar.sh doesn't exist..."
+  when: ngxrpm2tar_path.stat.exists == false
+
+- name: Check if nginx.init exists
+  stat: path="{{ nginx_home }}/nginx.init"
+  register: nginx_init_path
+
+- debug: msg="nginx.init exists!"
+  when: nginx_init_path.stat.exists
+
+- debug: msg="nginx.init doesn't exist..."
+  when: nginx_init_path.stat.exists == false
+
+- name: Check if nginx-{{ nginx_rpm_version }}.tar exists
+  stat: path="{{ nginx_home }}/nginx-{{ nginx_rpm_version }}.tar"
+  register: tar_path
+
+- debug: msg="nginx-{{ nginx_rpm_version }}.tar exists"
+  when: tar_path.stat.exists
+
+- debug: msg="nginx-{{ nginx_rpm_version }}.tar exist..."
+  when: tar_path.stat.exists == false
+
+- name: create nginx folder
+  file:
+    dest: "{{ nginx_home }}/nginx-{{ nginx_port }}"
+    state: directory
+
+- name: get nginx-oss rpm
+  get_url:
+    url: "{{ nginx_artifactory_url }}"
+    dest: "{{ nginx_home }}"
+
+- name: copy ngxrpm2tar.sh
+  template:
+    src: ngxrpm2tar.sh.j2
+    dest: "{{ nginx_home }}/ngxrpm2tar.sh"
+    mode: 0755
+
+- name: copy the nginx.init script
+  template:
+    src: nginx.init.j2
+    dest: "{{ nginx_home }}/nginx.init"
+    mode: 0755
+
+- name: execute rpm build script
+  shell: "{{ nginx_home }}/ngxrpm2tar.sh -d {{ nginx_home }} -p {{ nginx_home }}/nginx-{{ nginx_port }} {{ nginx_rpm_version }}"
+  when: tar_path.stat.exists == false
+
+- name: unarchive nginx tar
+  unarchive:
+    src: "{{ nginx_home }}/nginx-{{ nginx_rpm_version }}.tar"
+    dest: "{{ nginx_home }}/nginx-{{ nginx_port }}"
+    copy: no
+  when: tar_path.stat.exists == false
+  tags: nginx
+
+- name: remove the old default.conf
+  file:
+    path: "{{ nginx_home }}/nginx-{{ nginx_port }}/etc/nginx/conf.d/default.conf"
+    state: absent
+    recurse: no
+  when: tar_path.stat.exists == false
+
+- name: copy nginx.conf
+  template:
+    src: nginx.conf.j2
+    dest: "{{ nginx_home }}/nginx-{{ nginx_port }}/etc/nginx/nginx.conf"
+    mode: 0755
+
+- name: copy conf file
+  template:
+    src: "{{ config_file }}.conf.j2"
+    dest: "{{ nginx_home }}/nginx-{{ nginx_port }}/etc/nginx/conf.d/{{ config_file }}.conf"
+    mode: 0755
+
+- name: check nginx process
+  shell: ps -ef | grep -v grep | grep "nginx"
+  register: nginx_status
+  ignore_errors: yes
+  failed_when: "'FAILED' in nginx_status"
+  changed_when: false
+
+- debug: msg="{{ nginx_status }}"
+  no_log: yes
+
+- name: start nginx
+  shell: "{{ nginx_home }}/nginx.init start"
+  become: yes
+  when: nginx_status.rc != 0
+  tags: start
+
+- name: wait for port
+  wait_for:
+    port: "{{ nginx_port }}"
+    delay: 3
+
+- name: check nginx
+  uri:
+    url: "https://{{ ansible_fqdn }}/nexus"
+    validate_certs: no
+  when: config_file == 'nexus'
+
+- name: check nginx
+  uri:
+    url: "https://{{ ansible_fqdn }}"
+    validate_certs: no
+  when: config_file == 'nexus-iq'
+
+
+

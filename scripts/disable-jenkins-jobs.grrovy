@@ -1,0 +1,24 @@
+import hudson.model.*
+
+folderName="folder-a"
+
+recurseChildren(Hudson.instance.items)
+
+def recurseChildren(items) {
+  for (item in items) {
+    if (item.class.canonicalName == 'com.cloudbees.hudson.plugins.folder.Folder') {
+        recurseChildren(((com.cloudbees.hudson.plugins.folder.Folder) item).getItems())
+    } else if (item.class.canonicalName != null
+               && item.class.canonicalName != "com.cloudbees.hudson.plugins.folder.Folder"
+               && item.class.canonicalName != "org.jenkinsci.plugins.workflow.job.WorkflowJob"
+               && item.class.canonicalName != "com.github.mjdetullio.jenkins.plugins.multibranch.MavenMultiBranchProject"
+               && item.class.canonicalName != "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject"
+               && item.class.canonicalName != "hudson.model.ExternalJob"
+               && item.fullName == "${folderName}/${item.name}"
+              ) {
+      item.disabled=true
+      item.save()
+      println("Disabled job: [$item.fullName]")
+    }
+  }
+}

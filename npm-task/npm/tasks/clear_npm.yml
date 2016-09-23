@@ -1,0 +1,6 @@
+---
+ - name: Clean Node Js Details
+   file: dest=/tmp/node-{{nodejs_version}}-linux-x64.tar.gz state=absent
+
+ - name: clean NodeJS Dir location in /tmp
+   file: dest=nodejs state=absent

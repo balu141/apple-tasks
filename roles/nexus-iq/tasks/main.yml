@@ -1,0 +1,67 @@
+---
+- name: create nexus_iq directory
+  file:
+    path: "{{nexus_iq_dir}}"
+    state: directory
+    recurse: yes
+
+- name: extract nexus_iq to {{nexus_iq_dir}}
+  unarchive:
+    src: "{{nexus_iq_download_url}}"
+    dest: "{{nexus_iq_dir}}"
+    copy: no
+    exclude:
+     - demo.bat
+
+- name: create default symlink
+  file:
+    src: "{{nexus_iq_dir}}"
+    dest: "{{ nexus_iq_home }}/nexus-iq/default"
+    state: link
+
+- name: copy nexus-iq.sh start script
+  template:
+    src: nexus-iq.j2
+    dest: "{{nexus_iq_home }}/nexus-iq/default/nexus-iq.sh"
+    mode: 0755
+
+- name: copy stop_nexus-iq.sh start script
+  template:
+    src: stop_nexus-iq.sh.j2
+    dest: "{{nexus_iq_home }}/nexus-iq/default/stop_nexus-iq.sh"
+    mode: 0755
+
+- name: export nexus_iq home in .bashrc
+  lineinfile:
+    dest: "{{ ansible_env.HOME }}/.bashrc"
+    line: "export NEXUS_IQ_HOME={{nexus_iq_home}}/nexus-iq/default"
+    create: yes
+    state: present
+    mode: 0555
+
+- name: check nexus_iq process
+  shell: ps -ef | grep -v grep | grep "nexus"
+  register: nexus_status
+  ignore_errors: yes
+  failed_when: "'FAILED' in nexus_status"
+  changed_when: false
+
+- name: "{{ nexus_status }}"
+  debug: msg="{{ nexus_status }}"
+  no_log: yes
+
+- name: start nexus_iq
+  shell: nohup "{{ nexus_iq_home }}/nexus-iq/default/nexus-iq.sh" &
+  when: nexus_status.rc != 0
+
+- name: wait for port
+  wait_for:
+    port: "{{ nexus_iq_port }}"
+    delay: 15
+
+- name: check nexus-iq
+  uri:
+    url: "http://{{ ansible_fqdn }}:{{ nexus_iq_port }}"
+    validate_certs: no
+
+

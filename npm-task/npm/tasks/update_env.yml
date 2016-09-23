@@ -1,0 +1,11 @@
+---
+ - name: Set NODEJS Path
+   lineinfile:  dest=/home/vagrant/.bashrc  state=present
+         regexp='^'> line="export PATH=$M2:$PATH:/usr/local/nodejs/bin"
+
+ - name: Set NODE Path
+   lineinfile:  dest=/home/vagrant/.bashrc  state=present
+         regexp='^'> line="export NODE=/usr/local/nodejs/bin/node"
+
+ - name: Source Bashrc to Update Env Variables
+   shell: source ~/.bashrc

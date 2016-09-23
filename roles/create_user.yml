@@ -1,0 +1,35 @@
+---
+- hosts: all
+  gather_facts: True
+  become: yes
+  become_user: root
+
+  vars_prompt:
+    - name: "user_name"
+      prompt: "Enter User name:"
+      private: no
+
+    - name: "user_password"
+      prompt: "Enter password for user:"
+      private: no
+
+    - name: "user_firstname"
+      prompt: "Enter First Name for user:"
+      private: no
+
+    - name: "user_lastname"
+      prompt: "Enter Last Name for user:"
+      private: no
+
+    - name: "user_email"
+      prompt: "Enter email id for user:"
+      private: no
+
+    - name: "user_role"
+      prompt: "Enter Role to be linked to User:"
+      private: no
+
+  roles:
+     - { role: nexus-create-user, userId: "{{ user_name }}", userPassword: "{{ user_password }}",
+                                  userEmail: "{{ user_email }}", userRole: "{{ user_role }}",
+                                  userFirstName: "{{ user_firstname }}", userLastName: "{{ user_lastname }}" }

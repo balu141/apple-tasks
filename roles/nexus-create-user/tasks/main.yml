@@ -1,0 +1,60 @@
+- name: Gather User Details
+  uri:
+   url: "{{nexus_url}}/{{ nexus_endpoint }}/{{ nexus_users_service }}"
+   validate_certs: False
+   method: GET 
+   user: "{{ nexus_admin }}"
+   password: "{{ nexus_admin_password }}"
+   force_basic_auth: yes
+   return_content: yes
+  register: user_data
+ 
+
+- name: Gather Available Role Information
+  uri:
+   url: "{{nexus_url}}/{{ nexus_endpoint }}/{{ nexus_roles_service }}"
+   validate_certs: False
+   validate_certs: False
+   method: GET
+   user: "{{ nexus_admin }}"
+   password: "{{ nexus_admin_password }}"
+   force_basic_auth: yes
+   return_content: yes
+  register: role_data
+
+- debug: msg={{ role_data }}
+
+- name: Check if the role entered contains in the nexus roles 
+  fail:  msg="Please enter correct Role Information"
+  when: "'{{ userRole }}' not in role_data.content"
+
+- name: Create the User {{ userId }} with linked Role - {{ userRole }}
+  uri:
+    url: "{{nexus_url}}/{{ nexus_endpoint }}/{{ nexus_users_service }}"
+    validate_certs: False
+    method: POST
+    body: >
+     { 
+      data: { 
+        "userId": "{{ userId }}",
+        "email": "{{ userEmail }}",
+        "status": "active",
+        "firstName": "{{ userFirstName }}",
+        "lastName": "{{ userLastName }}",
+        "password": "{{ userPassword }}",
+        "resourceURI": "https://nexus:9443/nexus/service/local/roles/repository-any-full",
+        "roles": {
+             "role": "{{ userRole }}"
+                 }
+            }
+     }
+    user: "{{ nexus_admin }}"
+    password: "{{ nexus_admin_password }}"
+    force_basic_auth: yes
+    body_format: json 
+    HEADER_Content-Type: application/json
+    HEADER_Accept: application/json,version=2
+    return_content: yes
+    status_code: 201
+  register: hosted_status   
+  when: '"{{ userId }}" not in user_data.content'

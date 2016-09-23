@@ -1,0 +1,40 @@
+- name: Maker a Call
+  uri:
+   url: "{{nexus_url}}/{{ nexus_endpoint }}/{{ nexus_repositories_service }}"
+   validate_certs: False
+   method: GET 
+   user: "{{ nexus_admin }}"
+   password: "{{ nexus_admin_password }}"
+   force_basic_auth: yes
+   return_content: yes
+  register: repo_data
+
+# - debug: msg="{{ repo_data }}"
+ 
+- name: Make a Hosted Repository
+  uri:
+    url: "{{nexus_url}}/{{ nexus_endpoint }}/{{ nexus_repositories_service }}"
+    validate_certs: False
+    method: POST
+    body: >
+     { 
+      data: { 
+        "repoType": "{{ hosted_repo_data.repoType }}",
+        "id": "{{ repoId }}",
+        "name": "{{ repoName }}",
+        "provider": "{{ repoProvider}}",
+        "browseable": {{ hosted_repo_data.browseable }},
+        "repoPolicy": {{ hosted_repo_data.repoPolicy }},
+        "providerRole": {{ hosted_repo_data.providerRole }}
+           }
+     }
+    user: "{{ nexus_admin }}"
+    password: "{{ nexus_admin_password }}"
+    force_basic_auth: yes
+    body_format: json 
+    HEADER_Content-Type: application/json 
+    HEADER_Accept: application/json,version=2
+    return_content: yes
+    status_code: 201
+  register: hosted_status   
+  when: '"{{ repoId }}" not in repo_data.content'

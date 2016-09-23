@@ -1,0 +1,34 @@
+---
+# tasks file for installing bit Bucket
+
+- name: Install Unzip package
+  yum: name=unzip state=present
+  become: yes
+  become_user: root
+  
+- name: Copy JAVA_HOME location to variable
+  become: yes
+  become_user: vagrant
+  command:  bash -c -l "echo $JAVA_HOME"
+  register: java_loc
+ 
+- name: Where is Bash
+  command: bash -c -l "which bash"
+  register: whereis_bash
+
+- name: Create the fisheye work
+  file:
+     path: "{{ fisheye_work }}"
+     state: "directory"
+
+- name: extract nexus to {{ fisheye_home }}
+  unarchive: 
+     src: "{{ fisheye_download_url}}" 
+     dest: "{{ fisheye_home }}" 
+     copy: "no"
+
+- name: Start the fisheye
+  shell: nohup "{{ fisheye_home }}/fecru-{{ version }}/bin/start.sh" &
+
+- name: Wait for the fisheye  Port to start
+  wait_for: port=8060 delay=60

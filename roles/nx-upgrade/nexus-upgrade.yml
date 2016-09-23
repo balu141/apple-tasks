@@ -1,0 +1,26 @@
+---
+- hosts: all
+  gather_facts: yes
+  roles:
+    #- { role: nx-upgrade, nexus_home: /opt/local, nexus_type: oss, nexus_old_version: 2.11.1-01, nexus_version: 2.13.0-01, tags: ["oss"] }
+    - { role: nx-upgrade, nexus_home: /home/vagrant, nexus_type: professional-bundle, nexus_old_version: professional-2.13.0-01, nexus_version: professional-2.14.0-01, tags: ["pro"] }
+
+### nexus-pro upgrade
+
+## vagrant
+
+#    ansible-playbook nexus-upgrade.yml --tags pro
+
+## DC
+
+#    ansible-playbook -i <inventory> nexus-upgrade.yml --become --become-user=iagcit -u <user> --ask-become-pass -k --tags pro
+
+### nexus-oss upgrade
+
+## vagrant
+
+#    ansible-playbook nexus-upgrade.yml --tags oss
+
+## DC
+
+#    ansible-playbook -i <inventory> nexus-upgrade.yml --become --become-user=iagcit -u <user> --ask-become-pass -k --tags oss

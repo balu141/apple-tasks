@@ -1,0 +1,11 @@
+---
+# variable Declaration
+jenkins_slave_location: /opt/local/
+jenkins_master_host: 10.0.15.29
+jenkins_master_port: 8080
+jenkins_master_url: http://{{ jenkins_master_host }}:{{ jenkins_master_port }}
+jenkins_slave_start_url: http://{{ jenkins_master_host }}:{{ jenkins_master_port }}/computer/{{ slavename }}/slave-agent.jnlp
+jenkins_jnlp_userName: baland
+jenkins_jnlp_token: c0cd0a8e257a07e520a639ad895da4cc
+jenkins_master_download_cli: http://{{ jenkins_master_host }}:{{ jenkins_master_port }}/jnlpJars/jenkins-cli.jar
+jenkins_master_download_slave: http://{{ jenkins_master_host }}:{{ jenkins_master_port }}/jnlpJars/slave.jar

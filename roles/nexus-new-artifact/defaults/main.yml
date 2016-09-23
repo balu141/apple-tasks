@@ -1,0 +1,12 @@
+---
+# defaults file for deploy
+nexus_url: "https://nexus:9443/nexus"
+nexus_installation_dir: '/tmp'
+repository_id: 'releases'
+group_id: 'com.sample'
+artifact_id: 'hello-google-appengine-archetype'
+version: 'LATEST'
+nexus_package: 'hello.jar'
+symlink_test : 'VBoxGuestAdditions-5.0.24'
+owner: 'root'
+group: 'root'

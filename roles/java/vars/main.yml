@@ -1,0 +1,5 @@
+---
+# java
+downloaded_java_type: "{{ type }}-{{ version }}-linux-x64.tar.gz"
+java_artifactory_url: "https://artifactory-iag.apple.com/artifactory/devops-generic-local/java/{{ downloaded_java_type }}"
+extracted_java_version: "{{ type }}{{ java_version }}"

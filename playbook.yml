@@ -1,0 +1,26 @@
+---
+- hosts: all
+  gather_facts: yes
+  vars_files:
+    - main.yml
+  roles:
+      # - { role: basic }
+      # - { role: java, type: jre, version: 8u71, java_version: 1.8.0_71 }
+      - { role: deploy, nexus_installation_dir: '/tmp' }
+      #- {role: bitbucket, version: 4.8.3 }
+      #- {role: fisheye, version: 4.1.2 }
+      #- {role: jira, jira_version: 6.2.6 }
+     # - { role: nexus-iq-https , nexus_iq_version: 1.22.0-01 }
+     #- { role: nginx , nginx_os_version: 7, nginx_rpm_version:  1.10.0-1, nginx_port: 8090 }
+      # - { role: nexus , nexus_version: 2.11.1-01 , nexus_type: oss  }
+     #- { role: nexus-create-hosted, repoId: testingID , repoName: testingName, repoProvider: maven2 }
+     #- { role: nexus-create-proxy, repoId: testingID1 , repoName: testingName1, repoProvider: maven2 }
+     #- { role: nexus-user-to-role, userId: rajesh, userRole: ui-healthcheck-read }
+     #- { role: nexus-delete-repo, repoId: testingID1 }
+     #- { role: nexus-delete-user, userId: balan }
+     #- { role: nexus-upgrade , nexus_version: 2.13.0-01 , nexus_type: pro  }
+     #- { role: nx-upgrade , nexus_type: professional-bundle , nexus_new_version: professional-2.13.0, nexus_new_artifact_version: '01', nexus_old_version: professional-2.11.1, nexus_old_artifact_version: '01' }
+     #- { role: nx-upgrade , nexus_version: 2.13.0-01, nexus_type: oss ,  nexus_old_version: 2.11.1-01  }
+     #- { role: nginx , nginx_os_version: 7, nginx_rpm_version:  1.10.0-1, nginx_port: 80 }
+     #- { role: nexus-iq , nexus_iq_version: 1.21.0-02 }
+     #- { role: nexus-iq-upgrade , nexus_iq_version: 1.22.0-01 }

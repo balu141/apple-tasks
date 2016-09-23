@@ -1,0 +1,3 @@
+- include: configure_npm.yml
+- include: update_env.yml
+- include: clear_npm.yml

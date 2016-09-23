@@ -1,0 +1,14 @@
+---
+- hosts: all
+  gather_facts: yes
+  roles:
+    - { role: nexus-iq-upgrade , nexus_iq_home: /opt/local, nexus_iq_old_version: 1.21.0-02, nexus_iq_new_version: 1.22.0-01 }
+
+### vagrant
+
+#    ansible-playbook nexus-iq-upgrade.yml
+
+### DC
+
+#    ansible-playbook -i <inventory> nexus-iq-upgrade.yml --become --become-user=iagcit -u <user> --ask-become-pass -k
+

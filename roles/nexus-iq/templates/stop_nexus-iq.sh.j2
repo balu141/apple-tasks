@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# find the pid file for nexus iq
+pid=$(ps aux | grep nexus-{{ nexus_iq_version }} | grep -v grep | awk '{print $2}')
+kill $pid
